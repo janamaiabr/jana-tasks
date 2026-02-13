@@ -12,6 +12,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#fff;colo
 h1{font-size:1.5rem;font-weight:600;color:#111;margin-bottom:4px}
 .sub{font-size:.85rem;color:#999;margin-bottom:1.5rem}
 .section-title{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#aaa;margin-bottom:.75rem}
+.cat-header{font-size:.85rem;font-weight:600;margin:1.25rem 0 .5rem;display:flex;align-items:center;gap:8px}
 .card{display:flex;gap:12px;align-items:flex-start;padding:.875rem 1rem;margin-bottom:8px;border-radius:10px;border:1px solid #f0f0f0;background:#fff;transition:opacity .2s}
 .card.done{background:#fafafa;opacity:.55}
 .card input[type=checkbox]{margin-top:3px;width:18px;height:18px;cursor:pointer;flex-shrink:0}
@@ -23,6 +24,7 @@ h1{font-size:1.5rem;font-weight:600;color:#111;margin-bottom:4px}
 .task-name a{color:inherit;text-decoration:inherit}
 .note{font-size:.8rem;color:#888;margin:4px 0 0 16px;line-height:1.4}
 .due{font-size:.7rem;color:#bbb;margin-left:16px}
+.tag{display:inline-block;font-size:.65rem;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:8px;color:#fff}
 .footer{font-size:.75rem;color:#ccc;text-align:center;margin-top:2rem}
 section{margin-bottom:2rem}
 </style>
@@ -30,15 +32,39 @@ section{margin-bottom:2rem}
 <body>
 <div class="wrap">
   <h1>Minhas Tarefas</h1>
-  <p class="sub">Painel pessoal · Jana</p>
+  <p class="sub">Painel pessoal · Jana · Atualizado pelo Jaspion</p>
   <div id="pending"></div>
-  <div id="done"></div>
+  <div id="done-section"></div>
   <p class="footer" id="footer"></p>
 </div>
 <script>
-const COLORS={urbix:'#3B82F6',advisory:'#8B5CF6','design-studio':'#EC4899',personal:'#F59E0B',systems:'#10B981',paidmate:'#F97316',ziggy:'#06B6D4',peace:'#84CC16'};
+const COLORS={
+  urbix:'#3B82F6',
+  advisory:'#8B5CF6',
+  'design-studio':'#EC4899',
+  personal:'#F59E0B',
+  systems:'#10B981',
+  paidmate:'#F97316',
+  ziggy:'#06B6D4',
+  peace:'#84CC16',
+  affiliates:'#EF4444',
+  aly:'#D946EF',
+  social:'#F43F5E'
+};
+const LABELS={
+  urbix:'Urbix',
+  advisory:'Jana Maia Advisory',
+  'design-studio':'Design Studio',
+  personal:'Pessoal',
+  systems:'Sistemas',
+  paidmate:'PaidMate',
+  ziggy:'ZiggySitters',
+  peace:'Peace Emergency',
+  affiliates:'Afiliados',
+  aly:'Aly (Amazon Pins)',
+  social:'Social Media'
+};
 const LS='janamaia-tasks-done';
-let tasks=[];
 let doneSet=new Set(JSON.parse(localStorage.getItem(LS)||'[]'));
 
 function toggle(id){
@@ -46,37 +72,88 @@ function toggle(id){
   localStorage.setItem(LS,JSON.stringify([...doneSet]));
   render();
 }
-
 function isDone(t){return doneSet.has(t.id)||t.status==='done'}
-
 function fmtDate(d){
   if(!d)return'';
   const dt=new Date(d+'T00:00:00');
   return dt.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
 }
-
 function card(t,done){
   const c=COLORS[t.category]||'#6B7280';
   const name=t.link?'<a href="'+t.link+'" target="_blank" rel="noopener">'+t.task+' ↗</a>':t.task;
   const note=t.note?'<p class="note">'+t.note+'</p>':'';
   const due=t.due?'<span class="due">📅 '+fmtDate(t.due)+'</span>':'';
-  return'<div class="card'+(done?' done':'')+'"><input type="checkbox" '+(done?'checked':'')+' onchange="toggle('+t.id+')" style="accent-color:'+c+'"><div class="body"><div class="title-row"><span class="dot" style="background:'+c+'"></span><span class="task-name">'+name+'</span></div>'+note+due+'</div></div>';
+  const tag=t.onlyJana?'<span class="tag" style="background:#EF4444">Só você</span>':'';
+  return'<div class="card'+(done?' done':'')+'"><input type="checkbox" '+(done?'checked':'')+' onchange="toggle('+t.id+')" style="accent-color:'+c+'"><div class="body"><div class="title-row"><span class="dot" style="background:'+c+'"></span><span class="task-name">'+name+tag+'</span></div>'+note+due+'</div></div>';
 }
 
 function render(){
-  const p=tasks.filter(t=>!isDone(t));
-  const d=tasks.filter(t=>isDone(t));
-  document.getElementById('pending').innerHTML=p.length?'<section><h2 class="section-title">Pendentes ('+p.length+')</h2>'+p.map(t=>card(t,false)).join('')+'</section>':'<p style="color:#10B981;text-align:center;padding:2rem">✨ Tudo feito!</p>';
-  document.getElementById('done').innerHTML=d.length?'<section><h2 class="section-title">Concluídas ('+d.length+')</h2>'+d.map(t=>card(t,true)).join('')+'</section>':'';
-  document.getElementById('footer').textContent='Última atualização: '+new Date().toLocaleDateString('pt-BR');
+  const p=TASKS.filter(t=>!isDone(t));
+  const d=TASKS.filter(t=>isDone(t));
+
+  // Group pending by category
+  const groups={};
+  p.forEach(t=>{
+    if(!groups[t.category])groups[t.category]=[];
+    groups[t.category].push(t);
+  });
+
+  let html='';
+  if(p.length){
+    html+='<section><h2 class="section-title">Pendentes ('+p.length+')</h2>';
+    for(const cat in groups){
+      const c=COLORS[cat]||'#6B7280';
+      const label=LABELS[cat]||cat;
+      html+='<div class="cat-header"><span class="dot" style="background:'+c+';width:10px;height:10px"></span>'+label+' ('+groups[cat].length+')</div>';
+      html+=groups[cat].map(t=>card(t,false)).join('');
+    }
+    html+='</section>';
+  } else {
+    html='<p style="color:#10B981;text-align:center;padding:2rem;font-size:1.2rem">✨ Tudo feito!</p>';
+  }
+  document.getElementById('pending').innerHTML=html;
+
+  document.getElementById('done-section').innerHTML=d.length?'<section><h2 class="section-title">Concluídas ('+d.length+')</h2>'+d.map(t=>card(t,true)).join('')+'</section>':'';
+  document.getElementById('footer').textContent='Última atualização: 13 fev 2026';
 }
 
 const TASKS=[
-  {"id":1,"task":"Testar output do Urbix","link":"https://urbix-agents-app.vercel.app","note":"pwd: urbix2026","due":"2026-02-14","status":"pending","category":"urbix"},
-  {"id":2,"task":"Escolher 3-4 use cases pro Jana Maia Advisory","link":null,"note":"DA responses, stormwater, conditions, tenders, pre-submission, planning scheme search","due":"2026-02-14","status":"pending","category":"advisory"},
-  {"id":3,"task":"Listar melhorias do Design Studio pra LinkedIn","link":"https://janamaiabr.github.io/design-studio/","note":null,"due":"2026-02-15","status":"pending","category":"design-studio"}
+  // URBIX
+  {"id":1,"task":"Testar output dos agentes Urbix e dar feedback de formatação","link":"https://urbix-agents-app.vercel.app","note":"pwd: urbix2026 — Juliano pediu pra você trabalhar na formatação","due":"2026-02-14","status":"pending","category":"urbix","onlyJana":true},
+
+  // JANA MAIA ADVISORY
+  {"id":2,"task":"Escolher 3-4 use cases pro site Advisory (spin do Urbix)","link":null,"note":"DA responses, stormwater, conditions, tenders, pre-submission, planning scheme search","due":"2026-02-14","status":"pending","category":"advisory","onlyJana":true},
+
+  // DESIGN STUDIO
+  {"id":3,"task":"Listar melhorias do Design Studio pra publicar no LinkedIn","link":"https://janamaiabr.github.io/design-studio/","note":null,"due":"2026-02-15","status":"pending","category":"design-studio","onlyJana":true},
+
+  // ZIGGYSITTERS
+  {"id":10,"task":"Revisar ZiggySitters Action Plan (email) e encaminhar pra Rachel","link":null,"note":"Jaspion tá preparando — chega no email hoje","due":"2026-02-14","status":"pending","category":"ziggy","onlyJana":true},
+  {"id":11,"task":"Decidir: implementar Referred Sitter Model? (sim/não)","link":null,"note":"Strategy Brief recomenda. Precisa da sua decisão + Rachel","due":"2026-02-15","status":"pending","category":"ziggy","onlyJana":true},
+  {"id":12,"task":"Pausar ads do ZiggySitters (Facebook + Google)","link":null,"note":"94% abandono no form. Ads queimando dinheiro sem conversão","due":"2026-02-14","status":"pending","category":"ziggy","onlyJana":true},
+  {"id":13,"task":"Definir: qual insurance/guarantee oferecer nos bookings?","link":null,"note":"Pawshake tem vet coverage + Happiness Guarantee. ZiggySitters não tem nada visível","due":"2026-02-17","status":"pending","category":"ziggy","onlyJana":true},
+
+  // PAIDMATE
+  {"id":20,"task":"Verificar se PaidMate outreach emails foram realmente enviados","link":"https://mail.google.com","note":"Tracker mostra 10 'sent' mas Gmail não encontrou nenhum. Pipeline pode estar quebrado","due":"2026-02-14","status":"pending","category":"paidmate"},
+  {"id":21,"task":"Revisar /partners page (programa de referral pra contadores)","link":"https://paidmate.com.au/partners","note":"20% comissão recorrente. Tá live, precisa da sua aprovação do copy","due":"2026-02-15","status":"pending","category":"paidmate","onlyJana":true},
+
+  // PEACE EMERGENCY
+  {"id":30,"task":"Criar links de afiliado Amazon AU via SiteStripe","link":"https://affiliate-program.amazon.com.au","note":"Aly project precisa dos links — Jaspion não consegue gerar (precisa do seu login)","due":"2026-02-15","status":"pending","category":"aly","onlyJana":true},
+  {"id":31,"task":"Postar 3 Valentine's pins no Facebook Peace Emergency","link":null,"note":"Imagens aprovadas. Jaspion pode postar se tiver acesso, ou você posta manual","due":"2026-02-14","status":"pending","category":"peace","onlyJana":true},
+
+  // AFFILIATES
+  {"id":40,"task":"Verificar status do Hostinger affiliate (aprovado?)","link":"https://www.hostinger.com/affiliates","note":"Aplicação enviada ~10 Feb","due":"2026-02-14","status":"pending","category":"affiliates","onlyJana":true},
+  {"id":41,"task":"Próximo afiliado: se cadastrar no Shopify Affiliate","link":"https://www.shopify.com/affiliates","note":"Paga até $150 por referral","due":"2026-02-17","status":"pending","category":"affiliates","onlyJana":true},
+
+  // SOCIAL MEDIA
+  {"id":50,"task":"Criar Facebook Pages: PaidMate, ZiggySitters, Jana Maia Advisory","link":"https://www.facebook.com/pages/create","note":"Peace Emergency já tem. Faltam 3","due":"2026-02-15","status":"pending","category":"social","onlyJana":true},
+
+  // PERSONAL
+  {"id":60,"task":"Julia bruxismo — marcar dentista","link":null,"note":null,"due":null,"status":"pending","category":"personal"},
+  {"id":61,"task":"Trocar pneus do carro","link":null,"note":null,"due":null,"status":"pending","category":"personal"},
+  {"id":62,"task":"MBA — trabalhar na tese","link":null,"note":null,"due":null,"status":"pending","category":"personal"},
+  {"id":63,"task":"Julia ceceio — marcar fonoaudiólogo","link":null,"note":null,"due":null,"status":"pending","category":"personal"}
 ];
-tasks=TASKS;
 render();
 </script>
 </body>
