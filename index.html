@@ -49,7 +49,8 @@ const COLORS={
   peace:'#84CC16',
   affiliates:'#EF4444',
   aly:'#D946EF',
-  social:'#F43F5E'
+  social:'#F43F5E',
+  disqueamizade:'#A855F7'
 };
 const LABELS={
   urbix:'Urbix',
@@ -62,7 +63,8 @@ const LABELS={
   peace:'Peace Emergency',
   affiliates:'Afiliados',
   aly:'Aly (Amazon Pins)',
-  social:'Social Media'
+  social:'Social Media',
+  disqueamizade:'Disque Amizade'
 };
 const LS='janamaia-tasks-done';
 let doneSet=new Set(JSON.parse(localStorage.getItem(LS)||'[]'));
@@ -114,12 +116,15 @@ function render(){
   document.getElementById('pending').innerHTML=html;
 
   document.getElementById('done-section').innerHTML=d.length?'<section><h2 class="section-title">Concluídas ('+d.length+')</h2>'+d.map(t=>card(t,true)).join('')+'</section>':'';
-  document.getElementById('footer').textContent='Última atualização: 13 fev 2026';
+  document.getElementById('footer').textContent='Última atualização: 14 fev 2026';
 }
 
 const TASKS=[
   // URBIX
   {"id":1,"task":"Testar output dos agentes Urbix e dar feedback de formatação","link":"https://urbix-agents-app.vercel.app","note":"pwd: urbix2026 — Juliano pediu pra você trabalhar na formatação","due":"2026-02-14","status":"pending","category":"urbix","onlyJana":true},
+  {"id":4,"task":"Definir pricing tiers: Commercial ($49-199) vs Pro ($500-2000)","link":null,"note":"Dual-track: Commercial = public docs. Pro = full standards + real SCC projects","due":"2026-02-17","status":"pending","category":"urbix","onlyJana":true},
+  {"id":5,"task":"Testar backend com pergunta real de engenharia","link":"https://urbix-agents-app.vercel.app","note":"Backend MVP rodando. 12 agentes, RAG com Chroma DB. Custo ~$0.03/query","due":"2026-02-15","status":"pending","category":"urbix"},
+  {"id":6,"task":"Definir canal de go-to-market (web, WhatsApp, Slack?)","link":null,"note":"Gateway pattern: 1 backend, múltiplos canais. Qual priorizar?","due":"2026-02-18","status":"pending","category":"urbix","onlyJana":true},
 
   // JANA MAIA ADVISORY
   {"id":2,"task":"Escolher 3-4 use cases pro site Advisory (spin do Urbix)","link":null,"note":"DA responses, stormwater, conditions, tenders, pre-submission, planning scheme search","due":"2026-02-14","status":"pending","category":"advisory","onlyJana":true},
@@ -134,8 +139,11 @@ const TASKS=[
   {"id":13,"task":"Definir: qual insurance/guarantee oferecer nos bookings?","link":null,"note":"Pawshake tem vet coverage + Happiness Guarantee. ZiggySitters não tem nada visível","due":"2026-02-17","status":"pending","category":"ziggy","onlyJana":true},
 
   // PAIDMATE
-  {"id":20,"task":"Verificar se PaidMate outreach emails foram realmente enviados","link":"https://mail.google.com","note":"Tracker mostra 10 'sent' mas Gmail não encontrou nenhum. Pipeline pode estar quebrado","due":"2026-02-14","status":"pending","category":"paidmate"},
+  {"id":20,"task":"Verificar se PaidMate outreach emails foram realmente enviados","link":"https://mail.google.com","note":"Tracker mostra 10 sent mas Gmail não encontrou nenhum. Pipeline pode estar quebrado","due":"2026-02-14","status":"pending","category":"paidmate"},
   {"id":21,"task":"Revisar /partners page (programa de referral pra contadores)","link":"https://paidmate.com.au/partners","note":"20% comissão recorrente. Tá live, precisa da sua aprovação do copy","due":"2026-02-15","status":"pending","category":"paidmate","onlyJana":true},
+  {"id":22,"task":"Definir pricing final: Free (5 invoices) vs $29/mo vs $39/mo","link":"https://paidmate.com.au","note":"Chaser cobra $49+. Undercut e remove friction. Confirmar com Rachel","due":"2026-02-17","status":"pending","category":"paidmate","onlyJana":true},
+  {"id":23,"task":"Aprovar copy do Free Invoice Health Check tool","link":null,"note":"Jaspion vai construir. Conecta Xero, mostra overdue $ e aging buckets. Converte pra pago","due":"2026-02-17","status":"pending","category":"paidmate","onlyJana":true},
+  {"id":24,"task":"Encontrar 10 bookkeepers pra programa de parceiros","link":"https://paidmate.com.au/partners","note":"Rachel/marketing: 1 bookkeeper = 20-50 accounts. 20% rev share","due":"2026-02-21","status":"pending","category":"paidmate"},
 
   // PEACE EMERGENCY
   {"id":30,"task":"Criar links de afiliado Amazon AU via SiteStripe","link":"https://affiliate-program.amazon.com.au","note":"Aly project precisa dos links — Jaspion não consegue gerar (precisa do seu login)","due":"2026-02-15","status":"pending","category":"aly","onlyJana":true},
@@ -144,6 +152,13 @@ const TASKS=[
   // AFFILIATES
   {"id":40,"task":"Verificar status do Hostinger affiliate (aprovado?)","link":"https://www.hostinger.com/affiliates","note":"Aplicação enviada ~10 Feb","due":"2026-02-14","status":"pending","category":"affiliates","onlyJana":true},
   {"id":41,"task":"Próximo afiliado: se cadastrar no Shopify Affiliate","link":"https://www.shopify.com/affiliates","note":"Paga até $150 por referral","due":"2026-02-17","status":"pending","category":"affiliates","onlyJana":true},
+
+  // DISQUE AMIZADE
+  {"id":70,"task":"Ativar Email/Password auth no Supabase","link":"https://supabase.com/dashboard","note":"Login tá broken — email provider not enabled. Ref: uquztttljpswheiikbkw","due":"2026-02-15","status":"pending","category":"disqueamizade","onlyJana":true},
+  {"id":71,"task":"Configurar LiveKit Cloud (vídeo chat)","link":"https://livekit.io","note":"Free tier = 10k min/mês. Copiar WebSocket URL + API keys pro .env","due":"2026-02-17","status":"pending","category":"disqueamizade","onlyJana":true},
+  {"id":72,"task":"Criar produtos Stripe (pacotes de fichas + assinaturas)","link":"https://stripe.com","note":"Fichas: 50/150/500/1200. Planos: Basic R$19,90 / Premium R$49,90","due":"2026-02-17","status":"pending","category":"disqueamizade","onlyJana":true},
+  {"id":73,"task":"Registrar domínio disqueamizade.com.br","link":null,"note":"DNS pending. Atualmente em disqueamizade.vercel.app","due":"2026-02-18","status":"pending","category":"disqueamizade","onlyJana":true},
+  {"id":74,"task":"Testar fluxo de cadastro e salas de chat","link":"https://disqueamizade.vercel.app","note":"Verificar se tudo funciona após auth fix","due":"2026-02-18","status":"pending","category":"disqueamizade"},
 
   // SOCIAL MEDIA
   {"id":50,"task":"Criar Facebook Pages: PaidMate, ZiggySitters, Jana Maia Advisory","link":"https://www.facebook.com/pages/create","note":"Peace Emergency já tem. Faltam 3","due":"2026-02-15","status":"pending","category":"social","onlyJana":true},
