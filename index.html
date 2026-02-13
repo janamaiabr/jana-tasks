@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minhas Tarefas — Jana</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#fff;color:#222;min-height:100vh}
+.wrap{max-width:540px;margin:0 auto;padding:2rem 1.25rem 3rem}
+h1{font-size:1.5rem;font-weight:600;color:#111;margin-bottom:4px}
+.sub{font-size:.85rem;color:#999;margin-bottom:1.5rem}
+.section-title{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#aaa;margin-bottom:.75rem}
+.card{display:flex;gap:12px;align-items:flex-start;padding:.875rem 1rem;margin-bottom:8px;border-radius:10px;border:1px solid #f0f0f0;background:#fff;transition:opacity .2s}
+.card.done{background:#fafafa;opacity:.55}
+.card input[type=checkbox]{margin-top:3px;width:18px;height:18px;cursor:pointer;flex-shrink:0}
+.card .body{flex:1;min-width:0}
+.card .title-row{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.task-name{font-size:.95rem;font-weight:500;color:#222}
+.done .task-name{color:#aaa;text-decoration:line-through}
+.task-name a{color:inherit;text-decoration:inherit}
+.note{font-size:.8rem;color:#888;margin:4px 0 0 16px;line-height:1.4}
+.due{font-size:.7rem;color:#bbb;margin-left:16px}
+.footer{font-size:.75rem;color:#ccc;text-align:center;margin-top:2rem}
+section{margin-bottom:2rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Minhas Tarefas</h1>
+  <p class="sub">Painel pessoal · Jana</p>
+  <div id="pending"></div>
+  <div id="done"></div>
+  <p class="footer" id="footer"></p>
+</div>
+<script>
+const COLORS={urbix:'#3B82F6',advisory:'#8B5CF6','design-studio':'#EC4899',personal:'#F59E0B',systems:'#10B981',paidmate:'#F97316',ziggy:'#06B6D4',peace:'#84CC16'};
+const LS='janamaia-tasks-done';
+let tasks=[];
+let doneSet=new Set(JSON.parse(localStorage.getItem(LS)||'[]'));
+
+function toggle(id){
+  doneSet.has(id)?doneSet.delete(id):doneSet.add(id);
+  localStorage.setItem(LS,JSON.stringify([...doneSet]));
+  render();
+}
+
+function isDone(t){return doneSet.has(t.id)||t.status==='done'}
+
+function fmtDate(d){
+  if(!d)return'';
+  const dt=new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
+}
+
+function card(t,done){
+  const c=COLORS[t.category]||'#6B7280';
+  const name=t.link?'<a href="'+t.link+'" target="_blank" rel="noopener">'+t.task+' ↗</a>':t.task;
+  const note=t.note?'<p class="note">'+t.note+'</p>':'';
+  const due=t.due?'<span class="due">📅 '+fmtDate(t.due)+'</span>':'';
+  return'<div class="card'+(done?' done':'')+'"><input type="checkbox" '+(done?'checked':'')+' onchange="toggle('+t.id+')" style="accent-color:'+c+'"><div class="body"><div class="title-row"><span class="dot" style="background:'+c+'"></span><span class="task-name">'+name+'</span></div>'+note+due+'</div></div>';
+}
+
+function render(){
+  const p=tasks.filter(t=>!isDone(t));
+  const d=tasks.filter(t=>isDone(t));
+  document.getElementById('pending').innerHTML=p.length?'<section><h2 class="section-title">Pendentes ('+p.length+')</h2>'+p.map(t=>card(t,false)).join('')+'</section>':'<p style="color:#10B981;text-align:center;padding:2rem">✨ Tudo feito!</p>';
+  document.getElementById('done').innerHTML=d.length?'<section><h2 class="section-title">Concluídas ('+d.length+')</h2>'+d.map(t=>card(t,true)).join('')+'</section>':'';
+  document.getElementById('footer').textContent='Última atualização: '+new Date().toLocaleDateString('pt-BR');
+}
+
+const TASKS=[
+  {"id":1,"task":"Testar output do Urbix","link":"https://urbix-agents-app.vercel.app","note":"pwd: urbix2026","due":"2026-02-14","status":"pending","category":"urbix"},
+  {"id":2,"task":"Escolher 3-4 use cases pro Jana Maia Advisory","link":null,"note":"DA responses, stormwater, conditions, tenders, pre-submission, planning scheme search","due":"2026-02-14","status":"pending","category":"advisory"},
+  {"id":3,"task":"Listar melhorias do Design Studio pra LinkedIn","link":"https://janamaiabr.github.io/design-studio/","note":null,"due":"2026-02-15","status":"pending","category":"design-studio"}
+];
+tasks=TASKS;
+render();
+</script>
+</body>
+</html>
